@@ -1,0 +1,10 @@
+LICENSE
+README.md
+
+.git
+.github
+.gitignore
+.dockerignore
+
+.env
+.idea
