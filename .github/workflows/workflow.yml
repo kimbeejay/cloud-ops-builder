@@ -22,16 +22,11 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Validate required GitHub Actions variables
-        run: |
-          if [ -z "${UV_IMAGE_TAG}" ]; then
-            echo "UV_IMAGE_TAG is not set. Configure it in GitHub Actions Variables."
-            exit 1
-          fi
-
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Log in to GHCR
         if: startsWith(github.ref, 'refs/tags/v')
@@ -53,13 +48,11 @@ jobs:
             type=sha
 
       - name: Build image (push on version tags only)
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           platforms: linux/amd64,linux/arm64
           file: ./Dockerfile
-          build-args: |
-            UV_IMAGE_TAG=${{ env.UV_IMAGE_TAG }}
           push: ${{ startsWith(github.ref, 'refs/tags/v') }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

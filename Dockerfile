@@ -1,14 +1,62 @@
-# Use the official uv image as the base
-ARG UV_IMAGE_TAG=0.11.7-python3.12-trixie-slim
-FROM ghcr.io/astral-sh/uv:${UV_IMAGE_TAG}
+FROM debian:bookworm-slim
 
-LABEL org.opencontainers.image.source="https://github.com/kimbeejay/uv-make"
-LABEL org.opencontainers.image.description="Python image with uv and make installed for building projects using uv and make."
+LABEL org.opencontainers.image.source="https://github.com/kimbeejay/cloud-ops-builder"
+LABEL org.opencontainers.image.title="Cloud Ops Builder"
+LABEL org.opencontainers.image.description="A tool to build and deploy cloud operations tools."
 LABEL org.opencontainers.image.licenses="Apache-2.0"
 
-# Install make and clean up to keep the image slim
-RUN apt-get update && apt-get install -y --no-install-recommends \
+ENV DEBIAN_FRONTEND=noninteractive
+
+ARG TARGETARCH
+
+RUN echo "Building for architecture: ${TARGETARCH}"
+
+# 1. Install essential system tools
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    curl \
+    unzip \
+    git \
+    xz-utils \
     make \
     && rm -rf /var/lib/apt/lists/*
+
+# 2. Node.js v24 (Manual binary install for multi-arch precision) \
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash && \
+    export NVM_DIR="$HOME/.nvm" && \
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
+    nvm install 24 && \
+    nvm use 24 && \
+    nvm alias 24
+
+# 3. Install AWS CLI v2
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o "awscliv2.zip" && \
+    unzip awscliv2.zip && \
+    ./aws/install -i /usr/local/aws-cli -b /usr/local/bin && \
+    rm -rf awscliv2.zip aws && \
+    aws --version
+
+# 4. Install kubectl
+RUN KUBE_LATEST_VERSION=$(curl -s https://dl.k8s.io/release/stable.txt) && \
+    curl -LO "https://dl.k8s.io/release/${KUBE_LATEST_VERSION}/bin/linux/${TARGETARCH}/kubectl" && \
+    mv kubectl /usr/local/bin/ && \
+    chmod +x /usr/local/bin/kubectl && \
+    kubectl version --client
+
+# 5. Install Helm
+RUN curl -o- https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4 | bash && \
+    helm version --short
+
+# 6. Install uv
+COPY --from=ghcr.io/astral-sh/uv:0.11.8 /uv /uvx /bin/
+RUN uv python install 3.12 && \
+    PYTHON_PATH=$(uv python find 3.12) && \
+    ln -sf "$PYTHON_PATH" /usr/local/bin/python3.12 && \
+    ln -sf "$PYTHON_PATH" /usr/local/bin/python3 && \
+    ln -sf "$PYTHON_PATH" /usr/local/bin/python
+
+ENV UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
 WORKDIR /app
