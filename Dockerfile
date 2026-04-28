@@ -21,13 +21,16 @@ RUN apt-get update && apt-get install -y \
     make \
     && rm -rf /var/lib/apt/lists/*
 
-# 2. Node.js v24 (Manual binary install for multi-arch precision) \
+# 2. Node.js v24 (Manual binary install for multi-arch precision)
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash && \
     export NVM_DIR="$HOME/.nvm" && \
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
     nvm install 24 && \
     nvm use 24 && \
-    nvm alias 24
+    nvm alias 24 && \
+    ln -s $(which node) /usr/local/bin/node && \
+    ln -s $(which npm) /usr/local/bin/npm && \
+    node -v && npm -v
 
 # 3. Install AWS CLI v2
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o "awscliv2.zip" && \
