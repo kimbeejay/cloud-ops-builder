@@ -29,6 +29,22 @@ docker build -t cloud-ops-builder .
 docker run --rm -it cloud-ops-builder bash
 ```
 
+### Docker-in-Docker (dind) Support
+
+To use Docker CLI and Compose inside the container, mount the host Docker socket:
+
+```sh
+docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock cloud-ops-builder bash
+```
+
+You can now run Docker commands inside the container:
+
+```sh
+docker ps
+
+docker compose version
+```
+
 ### Example: Use Node.js, AWS CLI, kubectl, Helm, or Python
 
 ```sh

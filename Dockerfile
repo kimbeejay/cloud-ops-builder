@@ -62,4 +62,16 @@ ENV UV_LINK_MODE=copy \
     UV_COMPILE_BYTECODE=1 \
     PYTHONUNBUFFERED=1
 
+# 7. Install Docker CLI and Docker Compose
+RUN DOCKER_VERSION=29.4.1 && \
+    curl -fsSL -o /usr/local/bin/docker "https://download.docker.com/linux/static/stable/${TARGETARCH}/docker-${DOCKER_VERSION}.tgz" && \
+    tar -xz -C /usr/local/bin --strip-components=1 -f /usr/local/bin/docker && \
+    chmod +x /usr/local/bin/docker && \
+    docker --version && \
+    mkdir -p /usr/local/lib/docker/cli-plugins && \
+    curl -fsSL -o /usr/local/lib/docker/cli-plugins/docker-compose \
+      "https://github.com/docker/compose/releases/download/v5.1.3/docker-compose-linux-${TARGETARCH}" && \
+    chmod +x /usr/local/lib/docker/cli-plugins/docker-compose && \
+    docker compose version
+
 WORKDIR /app
