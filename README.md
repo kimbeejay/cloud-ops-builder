@@ -73,7 +73,7 @@ python --version
 
 ## Key Files
 
-- `Dockerfile`: All build logic and tool installation
+- `Dockerfile`: All build logic and tool installation (including Docker CLI via Docker's APT repo)
 - `.github/workflows/workflow.yml`: CI/CD pipeline
 - `AGENTS.md`: AI agent onboarding and project conventions
 
