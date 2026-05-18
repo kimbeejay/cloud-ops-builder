@@ -10,6 +10,7 @@ A multi-architecture Docker image for modern cloud operations automation and dep
   - AWS CLI v2
   - kubectl (latest stable)
   - Helm (latest)
+  - jq
   - Python 3.12 (via `uv` from Astral)
   - System tools: git, curl, make, xz-utils, unzip, ca-certificates
 - **Minimal base**: Uses `debian:bookworm-slim` for a small, secure footprint
@@ -60,6 +61,9 @@ kubectl version --client
 
 # Helm
 helm version --short
+
+# jq
+jq --version
 
 # Python
 python --version

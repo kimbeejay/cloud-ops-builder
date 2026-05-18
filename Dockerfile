@@ -8,6 +8,9 @@ LABEL org.opencontainers.image.licenses="Apache-2.0"
 ENV DEBIAN_FRONTEND=noninteractive
 
 ARG TARGETARCH
+ARG JQ_VERSION=1.8.1
+ARG UV_VERSION=0.11.8
+ARG PYTHON_VERSION=3.12
 
 RUN echo "Building for architecture: ${TARGETARCH}"
 
@@ -52,10 +55,10 @@ RUN curl -o- https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4
     helm version --short
 
 # 6. Install uv
-COPY --from=ghcr.io/astral-sh/uv:0.11.8 /uv /uvx /bin/
-RUN uv python install 3.12 && \
-    PYTHON_PATH=$(uv python find 3.12) && \
-    ln -sf "$PYTHON_PATH" /usr/local/bin/python3.12 && \
+COPY --from=ghcr.io/astral-sh/uv:${UV_VERSION} /uv /uvx /bin/
+RUN uv python install ${PYTHON_VERSION} && \
+    PYTHON_PATH=$(uv python find ${PYTHON_VERSION}) && \
+    ln -sf "$PYTHON_PATH" /usr/local/bin/python${PYTHON_VERSION} && \
     ln -sf "$PYTHON_PATH" /usr/local/bin/python3 && \
     ln -sf "$PYTHON_PATH" /usr/local/bin/python
 
@@ -70,5 +73,10 @@ RUN chmod a+r /etc/apt/keyrings/docker.asc
 RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian bookworm stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 RUN apt-get update && apt-get install -y docker-ce-cli && rm -rf /var/lib/apt/lists/*
+
+# 8. Install jq
+RUN curl "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-linux-${TARGETARCH}" -L -o /usr/local/bin/jq && \
+    chmod +x /usr/local/bin/jq && \
+    jq --version
 
 WORKDIR /app
