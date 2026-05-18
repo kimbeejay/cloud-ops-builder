@@ -1,3 +1,6 @@
+ARG UV_VERSION=0.11.8
+FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv-binaries
+
 FROM debian:bookworm-slim
 
 LABEL org.opencontainers.image.source="https://github.com/kimbeejay/cloud-ops-builder"
@@ -9,7 +12,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 ARG TARGETARCH
 ARG JQ_VERSION=1.8.1
-ARG UV_VERSION=0.11.8
 ARG PYTHON_VERSION=3.12
 
 RUN echo "Building for architecture: ${TARGETARCH}"
@@ -55,7 +57,7 @@ RUN curl -o- https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4
     helm version --short
 
 # 6. Install uv
-COPY --from=ghcr.io/astral-sh/uv:${UV_VERSION} /uv /uvx /bin/
+COPY --from=uv-binaries /uv /uvx /bin/
 RUN uv python install ${PYTHON_VERSION} && \
     PYTHON_PATH=$(uv python find ${PYTHON_VERSION}) && \
     ln -sf "$PYTHON_PATH" /usr/local/bin/python${PYTHON_VERSION} && \
