@@ -13,6 +13,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ARG TARGETARCH
 ARG JQ_VERSION=1.8.1
 ARG PYTHON_VERSION=3.12
+ARG PNPM_VERSION=11
 
 RUN echo "Building for architecture: ${TARGETARCH}"
 
@@ -34,9 +35,14 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | b
     nvm install 24 && \
     nvm use 24 && \
     nvm alias 24 && \
-    ln -s $(which node) /usr/local/bin/node && \
-    ln -s $(which npm) /usr/local/bin/npm && \
-    node -v && npm -v
+    ln -sf $(which node) /usr/local/bin/node && \
+    ln -sf $(which npm) /usr/local/bin/npm && \
+    ln -sf $(which npx) /usr/local/bin/npx && \
+    ln -sf $(which corepack) /usr/local/bin/corepack && \
+    corepack enable && \
+    corepack prepare pnpm@${PNPM_VERSION} --activate && \
+    ln -sf $(which pnpm) /usr/local/bin/pnpm && \
+    node -v && npm -v && corepack --version && pnpm -v
 
 # 3. Install AWS CLI v2
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o "awscliv2.zip" && \
