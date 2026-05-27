@@ -87,4 +87,8 @@ RUN curl "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-lin
     chmod +x /usr/local/bin/jq && \
     jq --version
 
+# 9. Install databricks-cli
+RUN curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/v1.0.0/install.sh | bash && \
+    databricks --version
+
 WORKDIR /app
