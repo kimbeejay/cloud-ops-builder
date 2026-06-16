@@ -1,4 +1,4 @@
-ARG UV_VERSION=0.11.8
+ARG UV_VERSION=0.11.21
 FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv-binaries
 
 FROM debian:bookworm-slim
@@ -29,7 +29,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # 2. Node.js v24 (Manual binary install for multi-arch precision)
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash && \
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.5/install.sh | bash && \
     export NVM_DIR="$HOME/.nvm" && \
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
     nvm install 24 && \
@@ -88,7 +88,16 @@ RUN curl "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-lin
     jq --version
 
 # 9. Install databricks-cli
-RUN curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/v1.0.0/install.sh | bash && \
+RUN curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/v1.3.0/install.sh | bash && \
     databricks --version
+
+# 10. Install Terraform
+RUN TF_LATEST_VERSION=1.15.6 && \
+    curl -LO "https://releases.hashicorp.com/terraform/${TF_LATEST_VERSION}/terraform_${TF_LATEST_VERSION}_linux_${TARGETARCH}.zip" && \
+    unzip terraform_${TF_LATEST_VERSION}_linux_${TARGETARCH}.zip -d terraform && \
+    mv terraform/terraform /usr/local/bin/ && \
+    rm terraform_${TF_LATEST_VERSION}_linux_${TARGETARCH}.zip && \
+    rm -rf terraform && \
+    terraform version
 
 WORKDIR /app

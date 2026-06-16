@@ -6,11 +6,14 @@ A multi-architecture Docker image for modern cloud operations automation and dep
 
 - **Multi-arch support**: Builds for `amd64` and `arm64` using Docker Buildx
 - **Modern cloud tooling**:
-  - Node.js v24 (manual install for precise multi-arch support)
+  - Node.js v24 (manual install for precise multi-arch support; Corepack + pnpm enabled)
   - AWS CLI v2
   - kubectl (latest stable)
-  - Helm (latest)
+  - Helm (installed via Helm's `get-helm-4` script)
+  - Docker CLI (`docker-ce-cli`, includes `docker compose`)
   - jq
+  - databricks-cli
+  - Terraform
   - Python 3.12 (via `uv` from Astral)
   - System tools: git, curl, make, xz-utils, unzip, ca-certificates
 - **Minimal base**: Uses `debian:bookworm-slim` for a small, secure footprint
@@ -46,12 +49,13 @@ docker ps
 docker compose version
 ```
 
-### Example: Use Node.js, AWS CLI, kubectl, Helm, or Python
+### Example: Use Node.js, pnpm, AWS CLI, kubectl, Helm, jq, Python, Databricks CLI, Terraform, or Docker CLI
 
 ```sh
 # Node.js
 node --version
 npm --version
+pnpm --version
 
 # AWS CLI
 aws --version
@@ -67,6 +71,16 @@ jq --version
 
 # Python
 python --version
+
+# Databricks CLI
+databricks --version
+
+# Terraform
+terraform version
+
+# Docker CLI (when `/var/run/docker.sock` is mounted)
+docker version
+docker compose version
 ```
 
 ## Release & CI/CD
@@ -77,7 +91,7 @@ python --version
 
 ## Key Files
 
-- `Dockerfile`: All build logic and tool installation (including Docker CLI via Docker's APT repo)
+- `Dockerfile`: All build logic and tool installation (Node.js/pnpm, AWS CLI, kubectl, Helm, uv/Python, Docker CLI, jq, databricks-cli, Terraform)
 - `.github/workflows/workflow.yml`: CI/CD pipeline
 - `AGENTS.md`: AI agent onboarding and project conventions
 
