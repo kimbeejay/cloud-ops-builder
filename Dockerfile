@@ -1,4 +1,4 @@
-ARG UV_VERSION=0.11.21
+ARG UV_VERSION=0.11.27
 FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv-binaries
 
 FROM debian:bookworm-slim
