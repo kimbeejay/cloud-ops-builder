@@ -101,7 +101,11 @@ RUN TF_LATEST_VERSION=1.15.6 && \
     terraform version
 
 # 11. Install docker-scout
-RUN curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh && \
+RUN mkdir -p /usr/local/lib/docker/cli-plugins && \
+    SCOUT_VERSION=$(curl -fsSL https://api.github.com/repos/docker/scout-cli/releases/latest | grep '"tag_name"' | head -1 | sed 's/.*"v\([^"]*\)".*/\1/') && \
+    curl -fsSL "https://github.com/docker/scout-cli/releases/download/v${SCOUT_VERSION}/docker-scout_${SCOUT_VERSION}_linux_${TARGETARCH}.tar.gz" | \
+    tar -xz -C /usr/local/lib/docker/cli-plugins docker-scout && \
+    chmod +x /usr/local/lib/docker/cli-plugins/docker-scout && \
     docker scout version
 
 WORKDIR /app
