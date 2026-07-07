@@ -11,11 +11,12 @@ A multi-architecture Docker image for modern cloud operations automation and dep
   - kubectl (latest stable)
   - Helm (installed via Helm's `get-helm-4` script)
   - Docker CLI (`docker-ce-cli`, includes `docker compose`)
+  - docker-scout
   - jq
   - databricks-cli
   - Terraform
   - Python 3.12 (via `uv` from Astral)
-  - System tools: git, curl, make, xz-utils, unzip, ca-certificates
+  - System tools: git, curl, make, xz-utils, unzip, ca-certificates, gnupg
 - **Minimal base**: Uses `debian:bookworm-slim` for a small, secure footprint
 - **No entrypoint**: Consumers provide commands at runtime
 
@@ -91,7 +92,7 @@ docker compose version
 
 ## Key Files
 
-- `Dockerfile`: All build logic and tool installation (Node.js/pnpm, AWS CLI, kubectl, Helm, uv/Python, Docker CLI, jq, databricks-cli, Terraform)
+- `Dockerfile`: All build logic and tool installation (Node.js/pnpm, AWS CLI, kubectl, Helm, uv/Python, Docker CLI, docker-scout, jq, databricks-cli, Terraform)
 - `.github/workflows/workflow.yml`: CI/CD pipeline
 - `AGENTS.md`: AI agent onboarding and project conventions
 

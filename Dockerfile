@@ -100,4 +100,8 @@ RUN TF_LATEST_VERSION=1.15.6 && \
     rm -rf terraform && \
     terraform version
 
+# 11. Install docker-scout
+RUN curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh && \
+    docker scout version
+
 WORKDIR /app

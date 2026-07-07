@@ -13,10 +13,11 @@ This repository builds a Docker image for a tool called **cloud-ops-builder**. T
   - Helm (installed via Helm's `get-helm-4` script)
   - `uv` Python tool (from Astral's image, with Python 3.12 installed and symlinked)
   - Docker CLI (`docker-ce-cli`, includes `docker compose`)
+  - docker-scout (installed via Docker's official install script)
   - jq
   - databricks-cli
   - Terraform
-  - System tools: git, curl, make, xz-utils, unzip, ca-certificates
+  - System tools: git, curl, make, xz-utils, unzip, ca-certificates, gnupg
 - **No application code**: This repo is infrastructure/tooling only. No app source or business logic is present.
 - **Entrypoint**: Not defined in Dockerfile; image consumers are expected to provide commands at runtime.
 
@@ -42,19 +43,21 @@ This repository builds a Docker image for a tool called **cloud-ops-builder**. T
 - **Multi-arch support**: All tooling is installed with cross-architecture compatibility in mind
 - **Minimal base image**: Uses `debian:bookworm-slim` for a small, secure footprint
 - **Manual installs**: Node.js and some tools are installed manually for version/arch control
-- **Version pinning in Dockerfile**: Tool versions are controlled with build args and constants (for example `UV_VERSION`, `PYTHON_VERSION`, `JQ_VERSION`, `PNPM_VERSION`, and `TF_LATEST_VERSION`)
+- **Version pinning in Dockerfile**: Tool versions are controlled with build args and inline constants. Build args: `UV_VERSION`, `PYTHON_VERSION`, `JQ_VERSION`, `PNPM_VERSION`. Inline in `RUN`: `TF_LATEST_VERSION` (set directly in the Terraform install step, not as an `ARG`)
+- **UV environment variables**: The image sets `UV_LINK_MODE=copy`, `UV_COMPILE_BYTECODE=1`, and `PYTHONUNBUFFERED=1` for uv/Python behaviour
+- **Working directory**: `WORKDIR /app` is set as the default working directory in the image
 - **No project-specific code patterns**: This repo is for image/tooling only
 
 ## Integration Points
 
-- **External dependencies**: AWS CLI, kubectl, Helm, Node.js, pnpm, Python (via uv), jq, databricks-cli, Terraform, Docker APT repository
+- **External dependencies**: AWS CLI, kubectl, Helm, Node.js, pnpm, Python (via uv), jq, databricks-cli, Terraform, docker-scout, Docker APT repository
 - **Image consumers**: Downstream users are expected to mount code or provide commands at runtime
 - **Docker daemon integration (optional)**: Docker CLI usage inside the container depends on mounting `/var/run/docker.sock`
 - **No internal services or APIs**: This repo does not define or expose any services
 
 ## Key Files
 
-- `Dockerfile`: All build logic and tool installation (Node.js/pnpm, AWS CLI, kubectl, Helm, uv/Python, Docker CLI, jq, databricks-cli, Terraform)
+- `Dockerfile`: All build logic and tool installation (Node.js/pnpm, AWS CLI, kubectl, Helm, uv/Python, Docker CLI, docker-scout, jq, databricks-cli, Terraform)
 - `.github/workflows/workflow.yml`: CI/CD pipeline for building and publishing the image
 - `README.md`: Minimal project description and runtime examples
 
