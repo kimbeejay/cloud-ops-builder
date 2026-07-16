@@ -28,6 +28,10 @@ A multi-architecture Docker image for modern cloud operations automation and dep
 docker build -t cloud-ops-builder .
 ```
 
+If you add a new `ARG` that is consumed by `RUN` commands in the final Debian stage, re-declare it after `FROM debian:bookworm-slim` (this Dockerfile relies on stage-local `ARG` declarations such as `NVM_VERSION`, `PNPM_VERSION`, `TF_VERSION`, and `TARGETARCH`).
+
+The Dockerfile also pins key tool versions via `ARG`s (`KUBECTL_VERSION`, `HELM_VERSION`, `SCOUT_VERSION`) and verifies SHA256 checksums for downloaded binaries like `kubectl`, `jq`, and `terraform` before installation.
+
 ### Run Interactively
 
 ```sh

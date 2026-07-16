@@ -13,7 +13,7 @@ This repository builds a Docker image for a tool called **cloud-ops-builder**. T
   - Helm (installed via Helm's `get-helm-4` script)
   - `uv` Python tool (from Astral's image, with Python 3.12 installed and symlinked)
   - Docker CLI (`docker-ce-cli`, includes `docker compose`)
-  - docker-scout (installed via Docker's official install script)
+  - docker-scout (installed from `docker/scout-cli` GitHub releases)
   - jq
   - databricks-cli
   - Terraform
@@ -43,7 +43,9 @@ This repository builds a Docker image for a tool called **cloud-ops-builder**. T
 - **Multi-arch support**: All tooling is installed with cross-architecture compatibility in mind
 - **Minimal base image**: Uses `debian:bookworm-slim` for a small, secure footprint
 - **Manual installs**: Node.js and some tools are installed manually for version/arch control
-- **Version pinning in Dockerfile**: Tool versions are controlled with build args and inline constants. Build args: `UV_VERSION`, `PYTHON_VERSION`, `JQ_VERSION`, `PNPM_VERSION`. Inline in `RUN`: `TF_LATEST_VERSION` (set directly in the Terraform install step, not as an `ARG`)
+- **Version pinning in Dockerfile**: Tool versions are controlled with build args and inline constants. Build args: `UV_VERSION`, `PYTHON_VERSION`, `JQ_VERSION`, `PNPM_VERSION`, `NVM_VERSION`, `TF_VERSION`, `KUBECTL_VERSION`, `HELM_VERSION`, `SCOUT_VERSION`
+- **Docker ARG scope in multi-stage builds**: Args declared before `FROM` are re-declared after `FROM debian:bookworm-slim` when needed by `RUN` commands in that stage (for example `NVM_VERSION`, `PNPM_VERSION`, `TF_VERSION`, `TARGETARCH`)
+- **Binary download verification**: Pinned binary downloads include SHA256 verification before install (for example `kubectl`, `jq`, and `terraform` in `Dockerfile`)
 - **UV environment variables**: The image sets `UV_LINK_MODE=copy`, `UV_COMPILE_BYTECODE=1`, and `PYTHONUNBUFFERED=1` for uv/Python behaviour
 - **Working directory**: `WORKDIR /app` is set as the default working directory in the image
 - **No project-specific code patterns**: This repo is for image/tooling only

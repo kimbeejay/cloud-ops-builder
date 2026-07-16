@@ -1,7 +1,28 @@
+ARG TARGETARCH
+
 ARG UV_VERSION=0.11.27
+ARG JQ_VERSION=1.8.2
+ARG PYTHON_VERSION=3.12
+ARG PNPM_VERSION=11
+ARG NVM_VERSION=0.40.6
+ARG TF_VERSION=1.15.8
+ARG KUBECTL_VERSION=v1.36.2
+ARG HELM_VERSION=4.2.3
+ARG SCOUT_VERSION=1.23.1
+
 FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv-binaries
 
 FROM debian:bookworm-slim
+
+ARG TARGETARCH
+ARG JQ_VERSION
+ARG PYTHON_VERSION
+ARG PNPM_VERSION
+ARG NVM_VERSION
+ARG TF_VERSION
+ARG KUBECTL_VERSION
+ARG HELM_VERSION
+ARG SCOUT_VERSION
 
 LABEL org.opencontainers.image.source="https://github.com/kimbeejay/cloud-ops-builder"
 LABEL org.opencontainers.image.title="Cloud Ops Builder"
@@ -10,15 +31,10 @@ LABEL org.opencontainers.image.licenses="Apache-2.0"
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ARG TARGETARCH
-ARG JQ_VERSION=1.8.1
-ARG PYTHON_VERSION=3.12
-ARG PNPM_VERSION=11
-
 RUN echo "Building for architecture: ${TARGETARCH}"
 
 # 1. Install essential system tools
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     unzip \
@@ -29,7 +45,9 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # 2. Node.js v24 (Manual binary install for multi-arch precision)
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.5/install.sh | bash && \
+RUN curl -fsSL "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh" -o /tmp/install-nvm.sh && \
+    bash /tmp/install-nvm.sh && \
+    rm -f /tmp/install-nvm.sh && \
     export NVM_DIR="$HOME/.nvm" && \
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
     nvm install 24 && \
@@ -52,14 +70,19 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o "aws
     aws --version
 
 # 4. Install kubectl
-RUN KUBE_LATEST_VERSION=$(curl -s https://dl.k8s.io/release/stable.txt) && \
-    curl -LO "https://dl.k8s.io/release/${KUBE_LATEST_VERSION}/bin/linux/${TARGETARCH}/kubectl" && \
+RUN curl -fsSLO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl" && \
+    curl -fsSLO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl.sha256" && \
+    echo "$(cat kubectl.sha256)  kubectl" | sha256sum -c - && \
     mv kubectl /usr/local/bin/ && \
+    rm -f kubectl.sha256 && \
     chmod +x /usr/local/bin/kubectl && \
     kubectl version --client
 
 # 5. Install Helm
-RUN curl -o- https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4 | bash && \
+RUN curl -fsSL "https://raw.githubusercontent.com/helm/helm/v${HELM_VERSION}/scripts/get-helm-4" -o /tmp/get-helm-4.sh && \
+    chmod +x /tmp/get-helm-4.sh && \
+    DESIRED_VERSION="v${HELM_VERSION}" /tmp/get-helm-4.sh && \
+    rm -f /tmp/get-helm-4.sh && \
     helm version --short
 
 # 6. Install uv
@@ -80,10 +103,14 @@ RUN curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings
 RUN chmod a+r /etc/apt/keyrings/docker.asc
 RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian bookworm stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-RUN apt-get update && apt-get install -y docker-ce-cli && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends docker-ce-cli && rm -rf /var/lib/apt/lists/*
 
 # 8. Install jq
-RUN curl "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-linux-${TARGETARCH}" -L -o /usr/local/bin/jq && \
+RUN curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-linux-${TARGETARCH}" -o jq-linux-${TARGETARCH} && \
+    curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/sha256sum.txt" -o jq-sha256sum.txt && \
+    grep " jq-linux-${TARGETARCH}$" jq-sha256sum.txt | sha256sum -c - && \
+    mv jq-linux-${TARGETARCH} /usr/local/bin/jq && \
+    rm -f jq-sha256sum.txt && \
     chmod +x /usr/local/bin/jq && \
     jq --version
 
@@ -92,17 +119,18 @@ RUN curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/v1.3.0/ins
     databricks --version
 
 # 10. Install Terraform
-RUN TF_LATEST_VERSION=1.15.6 && \
-    curl -LO "https://releases.hashicorp.com/terraform/${TF_LATEST_VERSION}/terraform_${TF_LATEST_VERSION}_linux_${TARGETARCH}.zip" && \
-    unzip terraform_${TF_LATEST_VERSION}_linux_${TARGETARCH}.zip -d terraform && \
+RUN curl -LO "https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_${TARGETARCH}.zip" && \
+    curl -fsSLO "https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_SHA256SUMS" && \
+    grep " terraform_${TF_VERSION}_linux_${TARGETARCH}.zip$" terraform_${TF_VERSION}_SHA256SUMS | sha256sum -c - && \
+    unzip terraform_${TF_VERSION}_linux_${TARGETARCH}.zip -d terraform && \
     mv terraform/terraform /usr/local/bin/ && \
-    rm terraform_${TF_LATEST_VERSION}_linux_${TARGETARCH}.zip && \
+    rm terraform_${TF_VERSION}_linux_${TARGETARCH}.zip && \
+    rm terraform_${TF_VERSION}_SHA256SUMS && \
     rm -rf terraform && \
     terraform version
 
 # 11. Install docker-scout
 RUN mkdir -p /usr/local/lib/docker/cli-plugins && \
-    SCOUT_VERSION=$(curl -fsSL https://api.github.com/repos/docker/scout-cli/releases/latest | grep '"tag_name"' | head -1 | sed 's/.*"v\([^"]*\)".*/\1/') && \
     curl -fsSL "https://github.com/docker/scout-cli/releases/download/v${SCOUT_VERSION}/docker-scout_${SCOUT_VERSION}_linux_${TARGETARCH}.tar.gz" | \
     tar -xz -C /usr/local/lib/docker/cli-plugins docker-scout && \
     chmod +x /usr/local/lib/docker/cli-plugins/docker-scout && \
