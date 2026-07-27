@@ -1,14 +1,15 @@
 ARG TARGETARCH
 
-ARG UV_VERSION=0.11.27
+ARG UV_VERSION=0.11.32
 ARG JQ_VERSION=1.8.2
 ARG PYTHON_VERSION=3.12
 ARG PNPM_VERSION=11
 ARG NVM_VERSION=0.40.6
 ARG TF_VERSION=1.15.8
-ARG KUBECTL_VERSION=v1.36.2
+ARG KUBECTL_VERSION=v1.36.3
 ARG HELM_VERSION=4.2.3
 ARG SCOUT_VERSION=1.23.1
+ARG DATABRICKS_CLI_VERSION=1.9.0
 
 FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv-binaries
 
@@ -23,6 +24,7 @@ ARG TF_VERSION
 ARG KUBECTL_VERSION
 ARG HELM_VERSION
 ARG SCOUT_VERSION
+ARG DATABRICKS_CLI_VERSION
 
 LABEL org.opencontainers.image.source="https://github.com/kimbeejay/cloud-ops-builder"
 LABEL org.opencontainers.image.title="Cloud Ops Builder"
@@ -115,7 +117,7 @@ RUN curl -fsSL "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/
     jq --version
 
 # 9. Install databricks-cli
-RUN curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/v1.3.0/install.sh | bash && \
+RUN curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/v${DATABRICKS_CLI_VERSION}/install.sh | bash && \
     databricks --version
 
 # 10. Install Terraform

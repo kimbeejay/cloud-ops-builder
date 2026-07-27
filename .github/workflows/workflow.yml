@@ -42,10 +42,10 @@ jobs:
         with:
           images: ${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=ref,event=branch
-            type=ref,event=tag
-            type=sha
+            type=raw,value=latest,enable={{is_default_branch}},priority=10
+            type=ref,event=branch,priority=30
+            type=ref,event=tag,priority=20
+            type=sha,format=short,priority=40
 
       - name: Build image (push on version tags only)
         uses: docker/build-push-action@v7
