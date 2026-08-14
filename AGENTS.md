@@ -9,7 +9,7 @@ This repository builds a Docker image for a tool called **cloud-ops-builder**. T
 - **Dockerfile**: The central artifact. Multi-stage build pattern that:
   - Uses `ghcr.io/astral-sh/uv:${UV_VERSION}` as the `uv-binaries` stage to extract uv and uvx binaries
   - Builds on `debian:bookworm-slim` with the extracted uv binaries
-  - Installs tools in order: system tools → Node.js/nvm → AWS CLI → kubectl → Helm → uv/Python → Docker CLI → jq → databricks-cli → Terraform → docker-scout
+  - Installs tools in order: system tools → Node.js/nvm → AWS CLI → kubectl → Helm → uv/Python → Docker CLI → jq → databricks-cli → Terraform → docker-scout → Grype
   - Includes tooling:
     - Node.js v24 (via nvm, manual install for multi-arch precision; symlinked to `/usr/local/bin` for global access; Corepack + pnpm enabled)
     - AWS CLI v2
@@ -18,6 +18,7 @@ This repository builds a Docker image for a tool called **cloud-ops-builder**. T
     - `uv` Python tool (from Astral's multi-stage image, with Python 3.12 installed and symlinked)
     - Docker CLI (`docker-ce-cli`, includes `docker compose`)
     - docker-scout with SHA256 verification
+    - Grype
     - jq with SHA256 verification
     - databricks-cli with SHA256 verification
     - Terraform with SHA256 verification
@@ -70,14 +71,14 @@ This repository builds a Docker image for a tool called **cloud-ops-builder**. T
 
 ## Integration Points
 
-- **External dependencies**: AWS CLI, kubectl, Helm, Node.js, pnpm, Python (via uv), jq, databricks-cli, Terraform, docker-scout, Docker APT repository
+- **External dependencies**: AWS CLI, kubectl, Helm, Node.js, pnpm, Python (via uv), jq, databricks-cli, Terraform, docker-scout, Grype, Docker APT repository
 - **Image consumers**: Downstream users are expected to mount code or provide commands at runtime
 - **Docker daemon integration (optional)**: Docker CLI usage inside the container depends on mounting `/var/run/docker.sock`
 - **No internal services or APIs**: This repo does not define or expose any services
 
 ## Key Files
 
-- `Dockerfile`: Multi-stage build logic and tool installation. Declares tool version `ARG`s at the top, uses `uv-binaries` stage, and installs all cloud operations tools with SHA256 verification where applicable
+- `Dockerfile`: Multi-stage build logic and tool installation. Declares tool version `ARG`s at the top, uses `uv-binaries` stage, and installs all cloud operations tools with SHA256 verification where applicable; includes Grype installation near the end of the build
 - `.github/workflows/workflow.yml`: CI/CD pipeline for building and publishing the image. Triggers on: pushes to `main`, tags starting with `v`, PRs to `main`, and manual dispatch. Only pushes to GHCR on version tags (`refs/tags/v*`)
 - `.dockerignore`: Excludes build context files (LICENSE, *.md, .git, .github, .gitignore, .dockerignore, .env, .idea) to keep image build context minimal
 - `README.md`: Minimal project description and runtime examples

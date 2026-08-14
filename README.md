@@ -12,6 +12,7 @@ A multi-architecture Docker image for modern cloud operations automation and dep
   - Helm (installed via Helm's `get-helm-4` script)
   - Docker CLI (`docker-ce-cli`, includes `docker compose`)
   - docker-scout
+  - Grype
   - jq
   - databricks-cli
   - Terraform
@@ -54,7 +55,7 @@ docker ps
 docker compose version
 ```
 
-### Example: Use Node.js, pnpm, AWS CLI, kubectl, Helm, jq, Python, Databricks CLI, Terraform, or Docker CLI
+### Example: Use Node.js, pnpm, AWS CLI, kubectl, Helm, jq, Python, Databricks CLI, Terraform, Grype, or Docker CLI
 
 ```sh
 # Node.js
@@ -83,6 +84,9 @@ databricks --version
 # Terraform
 terraform version
 
+# Grype
+grype version
+
 # Docker CLI (when `/var/run/docker.sock` is mounted)
 docker version
 docker compose version
@@ -96,7 +100,7 @@ docker compose version
 
 ## Key Files
 
-- `Dockerfile`: All build logic and tool installation (Node.js/pnpm, AWS CLI, kubectl, Helm, uv/Python, Docker CLI, docker-scout, jq, databricks-cli, Terraform)
+- `Dockerfile`: All build logic and tool installation (Node.js/pnpm, AWS CLI, kubectl, Helm, uv/Python, Docker CLI, docker-scout, Grype, jq, databricks-cli, Terraform)
 - `.github/workflows/workflow.yml`: CI/CD pipeline
 - `AGENTS.md`: AI agent onboarding and project conventions
 
