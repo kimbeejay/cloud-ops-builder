@@ -138,4 +138,11 @@ RUN mkdir -p /usr/local/lib/docker/cli-plugins && \
     chmod +x /usr/local/lib/docker/cli-plugins/docker-scout && \
     docker scout version
 
+# 12. Install Grype
+RUN curl -fsSLO "https://raw.githubusercontent.com/anchore/grype/main/install.sh" && \
+    chmod +x install.sh && \
+    ./install.sh -b /usr/local/bin && \
+    rm install.sh && \
+    grype version
+
 WORKDIR /app
